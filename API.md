@@ -7,6 +7,7 @@ This is **not** a documentation of their official developer API. Rather, this AP
 ## Table of Contents
 1. [Logos](#logos)
 2. [Routes](#routes)
+3. [Stops](#stops)
 
 ## Logos
 | Name     | Rendered SVG                                                                                       | Link                                                                                                         |
@@ -78,14 +79,14 @@ Calling this endpoint will return a array of dictionaries as a response in this 
 
 If the array is empty, then that means the route ID/URL is invalid.
 
-| Field       | Explanation                                                                                                                                                                                                                           | Example        |
-|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| Field         | Explanation                                                                                                                                                                                                                           | Example        |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
 | `stopSequence` | The stop position.                                                                                                                                                                                                                     | `"1"`          |
 | `routeId`      | The route ID.                                                                                                                                                                                                                          | `"MTASBWY:4"`  |
-| `notes`        | The notes about this stop.                                                                                                                                                                                                             | `"No notes found for any stops so far."` |
+| `notes`        | The notes about this stop. So far, no notes have been found for any stops.                                                                                                                                                             | `""`           |
 | `stopId`       | The stop ID.                                                                                                                                                                                                                           | `"MTASBWY:401"` |
-| `stopType`     | The stop type. So far, only values found are `"0"`, `"1"`, `"2"`. <br> `"0"` indicates that the stop is being serviced normally by the line. <br> `"1"` indicates special services, such as partial direction service or different lines using the stop. <br> `"2"` indicates that the line has access to the stop but it is not currently being used. | `"0"`          |
-| `stopStatus`   | The stop status. `""` means the stop is serviced normally. A non-empty value, such as `"-2"`, means the stop is not serviced normally, such as a direction being closed for the time being.                                           | `""`           |
+| `stopType`     | The stop type. So far, only values found are `"0"`, `"1"`, `"2"`. <br> `"0"` indicates that the stop is being serviced normally by the line. <br> `"1"` indicates special services currently, such as partial direction service or different lines using the stop. <br> `"2"` indicates that the line has access to the stop but it is not currently being used. | `"0"`          |
+| `stopStatus`   | The stop status, used for checking whether platform(s) are closed at a stop. <br> So far, only values found are `""`, `"-1"`, `"-2"`, `"-3"`. <br> `""` indicates that the stop is serviced normally. <br> `"-1"` indicates that the stop is closed. <br> `"-2"` indicates that the southbound platform is closed for the time being. <br> `"-3"` indicates that the northbound platform is closed for the time being. | `""`           |
 | `borough`      | The borough. Self-explanatory.                                                                                                                                                                                                        | `"Bronx"`      |
 | `stopName`     | The stop name. Self-explanatory.                                                                                                                                                                                                      | `"Woodlawn"`   |
 | `ada`          | Whether this stop is [ADA Approved](https://en.wikipedia.org/wiki/Americans_with_Disabilities_Act_of_1990). Either `"0"`, meaning it's not, or `"1"`, meaning it is.                                                                  | `"0"`          |
@@ -118,3 +119,5 @@ If the array is empty, then that means the route ID/URL is invalid.
 | ![SR](https://new.mta.info/themes/custom/bootstrap_mta/js/apps/ee2e30facb9a6c4b8bf0c43e531a36ab.svg)  | MTASBWY:H | [Link](https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:H) |
 | ![SF](https://new.mta.info/themes/custom/bootstrap_mta/js/apps/c01e0840361272a0585e94a540d6755f.svg)  | MTASBWY:FS | [Link](https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:FS) |
 | ![SIR](https://new.mta.info/themes/custom/bootstrap_mta/js/apps/ab18baf2d2d8ea7f1902ce1751d5fdf2.svg)  | MTASBWY:SI | [Link](https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:SI) |
+
+## Stops
