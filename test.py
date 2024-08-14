@@ -1,11 +1,11 @@
 import requests
 import json
 
-url = "https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:Q"
+url = "https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:E"
 
 r =  requests.get(url)
 
 resp = r.json()
 
 with open("output.json", "w") as f:
-    json.dump(resp, f)
+    json.dump(resp, f, indent=4)
