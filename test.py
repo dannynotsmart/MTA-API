@@ -27,3 +27,4 @@ for route in routes:
 with open("output.json", "w") as f:
     json.dump(output, f, indent = 4)
 
+# print(routes)
