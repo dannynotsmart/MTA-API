@@ -85,7 +85,7 @@ If the array is empty, then that means the route ID/URL is invalid.
 | `routeId`      | The route ID.                                                                                                                                                                                                                          | `"MTASBWY:4"`  |
 | `notes`        | The notes about this stop. So far, no notes have been found for any stops.                                                                                                                                                             | `""`           |
 | `stopId`       | The stop ID.                                                                                                                                                                                                                           | `"MTASBWY:401"` |
-| `stopType`     | The stop type, used for checking how the requested train is being serviced at this stop/station. <br> Possible values are `"0"`, `"1"`, `"2"`, `"3"`. <br> `"0"` indicates that the train always operates and always stops at this station. <br> `"1"` indicates that the train does not always operate or sometimes skips this station; the train might skip this stop during rush hours in the peak direction or the train is serviced during evenings, late nights, and weekends. <br> `"2"` indicates that the train stops at this station late night hours only. This is primarily found on express lines at local stops. <br> `"3"` indicates that the train operates in one direction only during rush hours. | `"0"`          |
+| `stopType`     | The stop type, used for checking how the requested train is being serviced at this stop/station. <br> Possible values are `"0"`, `"1"`, `"2"`, `"3"`. <br> `"0"` indicates that the train always operates and always stops at this station. <br> `"1"` indicates that the train does not always operate or sometimes skips this station; e.g. the train might skip this stop during rush hours in the peak direction or the train is/is not serviced during evenings, late nights, and weekends. <br> `"2"` indicates that the train stops at this station late night hours only. This is primarily found on express lines at local stops. <br> `"3"` indicates that the train operates in one direction only during rush hours. | `"0"`          |
 | `stopStatus`   | The stop status, used for checking whether platform(s) are closed at a stop. <br> So far, only values found are `""`, `"-1"`, `"-2"`, `"-3"`. <br> `""` indicates that the stop is serviced normally. <br> `"-1"` indicates that the stop is closed. <br> `"-2"` indicates that the southbound platform is closed for the time being. <br> `"-3"` indicates that the northbound platform is closed for the time being. | `""`           |
 | `borough`      | The borough. Self-explanatory.                                                                                                                                                                                                        | `"Bronx"`      |
 | `stopName`     | The stop name. Self-explanatory.                                                                                                                                                                                                      | `"Woodlawn"`   |
@@ -121,3 +121,136 @@ If the array is empty, then that means the route ID/URL is invalid.
 | ![SIR](https://new.mta.info/themes/custom/bootstrap_mta/js/apps/ab18baf2d2d8ea7f1902ce1751d5fdf2.svg)  | MTASBWY:SI | [Link](https://collector-otp-prod.camsys-apps.com/schedule/MTASBWY/stopsForRoute?apikey=qeqy84JE7hUKfaI0Lxm2Ttcm6ZA0bYrP&&routeId=MTASBWY:SI) |
 
 ## Stops
+To get information about a specific stop, you have to call a GET request to this API:
+```
+https://otp-mta-prod.camsys-apps.com/otp/routers/default/nearby?stops={stop}&apikey=Z276E3rCeTzOQEoBPPN4JCEc6GfvdnYE
+```
+where `stop` is the stop ID that you want to look up.
+
+In [urls.json](./urls.json), there is a list of stop IDS for each route ID.
+
+Note that you have to sanitize your parameters before calling the API. For example, the stop Id `MTASBWY:101` would be sanitized into `MTASBWY%3A101` and the URL would be `https://otp-mta-prod.camsys-apps.com/otp/routers/default/nearby?stops=MTASBWY%3A101&apikey=Z276E3rCeTzOQEoBPPN4JCEc6GfvdnYE`.
+
+Calling this endpoint will return a array of dictionaries as a response in this format:
+```json
+[
+    {
+        "stop": stopFields,
+        "alerts": [
+            alertsFields...
+        ],
+        "groups": [
+            groupsFields...
+        ]
+    }
+]
+```
+
+The `alerts` and `groups` fields are arrays that contain dictionaries with fields that are noted in [`alertsFields`](#alertsfields) and [`groupsFields`](#groupsfields), respectively.
+
+Note: The fields that return text, primarily `"alertDescriptionText"`, may contain special characters, such as `"\n"` for new lines. 
+
+### **IMPORTANT**
+For some reason, this specific endpoint is extremely inconsistent. Some fields may not show up, and all of the documented fields may very easily be `null` values. I have documented most fields that I could find, but there could be more fields that only show up at a certain time period, at certain stops, etc. Just be sure to handle these issues accordingly. 
+
+### stopFields
+| Field            | Explanation                                                     | Example                |
+|------------------|-----------------------------------------------------------------|------------------------|
+| `id`             | The stop ID.                                                    | `"MTASBWY:101"`        |
+| `name`           | The name of the stop.                                           | `"Van Cortlandt Park-242 St"` |
+| `lat`            | The latitude coordinates.                                       | `40.889246`            |
+| `lon`            | The longitude coordinates.                                      | `-73.898584`           |
+| `parentStation`  | The ID of the parent station.                                   | `"101"`                |
+
+### alertsFields
+The alerts fields sometimes contain extra fields (see below).
+
+**These fields will always show up:**
+| Field                        | Explanation                                                                                                                         | Example                                                                                                                                                                 |
+|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `alertHeaderText`            | The alert header.                                                                                                                   | `"Subways are running on a Sunday Schedule"`                                                                                                                            |
+| `createdAtDate`              | The timestamp for when the alert was created, in milliseconds.                                                                      | `1722959658000`                                                                                                                                                         |
+| `updatedAtDate`              | The timestamp for when the alert was updated, in milliseconds.                                                                      | `1722970811000`                                                                                                                                                         |
+| `alertDescriptionText`       | The alert description. Can be an empty string.                                                                                      | `"Use nearby Rector St [1] or Chambers St accessibility icon | [1][2][3].\n\nConsider nearby Cortlandt St accessibility icon | [N][R], World Trade Center accessibility icon | [E] or Fulton St accessibility icon | [2][3][4][A][C][J].\n\nWhat's happening?\n9/11 Memorial Ceremony"` |
+| `effectiveStartDate`         | The timestamp of the effective start date.                                                                                          | `1726029900000`                                                                                                                                                         |
+| `effectiveEndDate`           | The timestamp of the effective end date.                                                                                            | `1725335959000`                                                                                                                                                         |
+| `displayBeforeActiveMillis`  | Not exactly clear what this is. Returns an integer resembling milliseconds for something. Can be 0.                                  | `0`                                                                                                                                                                     |
+| `alertType`                  | The alert type.                                                                                                                     | `"Sunday Schedule"`                                                                                                                                                     |
+| `humanReadableActivePeriod`  | A human-readable datetime of the alert active period.                                                                               | `"Sep 2, Monday, Labor Day"`                                                                                                                                             |
+| `id`                         | The ID of the alert.                                                                                                                | `"lmm:planned_work:19031"`                                                                                                                                              |
+
+**These fields might show up:**
+| Field                  | Explanation                                                                                                   | Example                                                                                                                                                                      |
+|------------------------|---------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `servicePlanNumbers`    | An array of service plans.                                                                                     | `[ "A-37-07" ]`                                                                                                                                                              |
+| `generalOrderNumbers`   | An array of general orders.                                                                                    | `[ "1675-24" ]`                                                                                                                                                              |
+| `stationAlternates`     | Contains an array of dictionaries with string fields: `"notes"`, `"agencyId"`, and `"stopId"`.                | ```[{"notes": "accessibility icon \| [7][G] and Manhattan-bound [E]\nshuttle bus icon Jackson Ave at Thomson Ave", "agencyId": "MTASBWY", "stopId": "F09"}, {"notes": "accessibility icon \| Manhattan-bound [E]\nshuttle bus icon Jackson Ave at Queens Blvd", "agencyId": "MTASBWY", "stopId": "G21"}, {"notes": "accessibility icon \| [F] and Jamaica Center-bound [E]\nshuttle bus icon 21 St at 41 Ave", "agencyId": "MTASBWY", "stopId": "B04"}]``` |
+| `alertUrl`              | The alert URL. I have not found an instance of this having a value.                                            | `null`                                                                                                                                                                       |
+
+If you want to view the example for `stationAlternates` you can copy and paste it into a JSON viewer like [this one](https://jsonformatter.org/json-pretty-print)
+
+There might be other fields, but these are the ones that I found that sometimes show up. Just be wary when you handle the response.
+
+Note: These extra fields can still show up, but have a `null` value, so be sure to handle that.
+
+### groupsFields
+Each of these group fields are for a different route. This accounts for stops that multiple trains stop at, such as Time Squares, and also accounts for trains going in different directions (uptown and downtown).
+
+These group fields will be a dictionary formatted like this:
+```json
+{
+    "route": routeFields,
+    "times": [
+        timesFields...
+    ]
+}
+```
+
+#### routeFields
+| Field                     | Explanation                                                                        | Example                           |
+|---------------------------|------------------------------------------------------------------------------------|-----------------------------------|
+| `"id"`                    | The route ID.                                                                      | `"MTASBWY:1"`                     |
+| `"shortName"`             | The short name of the route.                                                       | `"1"`                             |
+| `"longName"`              | The long name of the route.                                                        | `"Broadway - 7 Avenue Local"`     |
+| `"mode"`                  | The mode of transportation.                                                        | `"SUBWAY"`                        |
+| `"color"`                 | The color of the route, in base 16 / hex format.                                   | `"EE352E"`                        |
+| `"agencyName"`            | The name of the agency operating the route.                                        | `"MTA New York City Transit"`     |
+| `"paramId"`               | The param ID used internally by the system.                                        | `"MTASBWY__1"`                    |
+| `"sortOrder"`             | The order in which the route appears, often used for sorting purposes.             | `1`                               |
+| `"routeType"`             | The type of the route.                                                             | `1`                               |
+| `"regionalFareCardAccepted"` | Whether the route accepts MetroCards. Returns a boolean value.                 | `true`                            |
+
+#### timesFields
+| Field                        | Explanation                                                                                                                  | Example                                         |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
+| `"stopId"`                   | The stop ID.                                                                                                                 | `"MTASBWY:101N"`                                |
+| `"stopName"`                 | The stop name.                                                                                                               | `"Van Cortlandt Park-242 St"`                   |
+| `"stopLat"`                  | The latitude of the stop.                                                                                                    | `40.889246`                                     |
+| `"stopLon"`                  | The longitude of the stop.                                                                                                   | `-73.898584`                                    |
+| `"stopIndex"`                | The stop index.                                                                                                              | `37`                                            |
+| `"stopCount"`                | The total number of stops on the route.                                                                                      | `38`                                            |
+| `"scheduledArrival"`         | The scheduled time of arrival in seconds since midnight (00:00:00) on the same day.                                          | `81510`                                         |
+| `"scheduledDeparture"`       | The scheduled time of departure in seconds since midnight (00:00:00) on the same day. Usually the same as `scheduledArrival`. | `81510`                                         |
+| `"realtimeArrival"`          | The realtime time of arrival in seconds since midnight (00:00:00) on the same day.                                           | `81901`                                         |
+| `"realtimeDeparture"`        | The realtime time of departure in seconds since midnight (00:00:00) on the same day. Usually the same as `realtimeArrival`.   | `81901`                                         |
+| `"arrivalDelay"`             | The difference between `realtimeArrival` and `scheduledArrival`.                                                             | `391`                                           |
+| `"departureDelay"`           | The difference between `realtimeDeparture` and `scheduledDeparture`.                                                         | `391`                                           |
+| `"timepoint"`                | Assumed: Whether there is data on the arrival and departure times. Returns a boolean.                                         | `true`                                          |
+| `"realtime"`                 | Assumed: Whether the data is being updated in realtime. Returns a boolean.                                                   | `true`                                          |
+| `"realtimeState"`            | Assumed: The state of the realtime data. Only value found so far is `"UPDATED"`.                                              | `"UPDATED"`                                     |
+| `"serviceDay"`               | The timestamp of the service day, in seconds. This timestamp only returns the date.                                           | `1724212800`                                    |
+| `"tripId"`                   | The trip ID.                                                                                                                 | `"MTASBWY:899"`                                 |
+| `"blockId"`                  | Unknown field.                                                                                                               | `null`                                          |
+| `"tripHeadsign"`             | The trip head sign of the train.                                                                                             | `"Van Cortlandt Park-242 St"`                   |
+| `"arrivalFmt"`               | The arrival time, formatted in datetime.                                                                                     | `"2024-08-21T23:01:31-04:00"`                   |
+| `"departureFmt"`             | The departure time, formatted in datetime.                                                                                   | `"2024-08-21T23:01:31-04:00"`                   |
+| `"stopHeadsign"`             | The stop head sign.                                                                                                          | `"242 St"`                                      |
+| `"track"`                    | The track number.                                                                                                            | `"4"`                                           |
+| `"peakOffpeak"`              | Unknown field. Returns an integer.                                                                                           | `0`                                             |
+| `"pattern"`                  | Returns a dictionary with two fields, `"id"` and `"desc"`.                                                                   | `{ "id": "MTASBWY:1:0:01", "desc": "1 to Van Cortlandt Park-242 St (MTASBWY:101N)"}` |
+| `"timestamp"`                | The current timestamp, in seconds.                                                                                           | `1724295503`                                    |
+| `"directionId"`              | Indicates the direction of the train. `"0"` indicates uptown direction. `"1"` indicates downtown direction.                  | `"0"`                                           |
+| `"vehicleInfo"`              | Assumed: The vehicle information. Have not found any values other than `null`.                                               | `null`                                          |
+| `"stopsForTrip"`             | Assumed: The stops for the train's route. Have not found any values other than `null`.                                       | `null`                                          |
+| `"realtimeSignText"`         | Unknown field.                                                                                                               | `""`                                            |
+| `"regionalFareCardAccepted"` | Whether they accept MetroCards. Returns a boolean.                                                                           | `true`                                          |
